@@ -4,6 +4,8 @@ version = "0.2.0"
 description = "PKBrain —— 开源、本地优先、Build in Public 的个人知识库大脑"
 readme = "README.md"
 requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 dependencies = [
     "apscheduler>=3.10,<4",
     "pydantic>=2.9",

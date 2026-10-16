@@ -2,6 +2,20 @@
 
 按 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 组织，版本号跟随里程碑。
 
+## [未发布]
+
+### 新增
+
+- `LICENSE`：Apache-2.0 全文。决策点 D2 拍板。
+- `docs/DECISIONS.md`：D1–D8 的拍板结果、按建议先走的项，以及公开前清单。
+
+### 变更
+
+- `pyproject.toml` 标注 SPDX `license = "Apache-2.0"` 并把 `LICENSE` 打进包
+  （wheel 里是 `License-Expression: Apache-2.0` 与 `License-File: LICENSE`）。
+- ADR-0003 从「提议」改为「已采纳」。
+- README 的许可一节改为指向 `LICENSE`。
+
 ## [0.2.0] - 2026-10-16
 
 M1：每晚按记忆提问，回答即成当日快照。

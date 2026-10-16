@@ -7,6 +7,8 @@
 > 现状：**M1 开发中**。每晚的会话已经能用——`pkbrain talk` 按记忆挑问题，你回答，落成当天的快照；
 > `pkbrain stats` 报完整率。M1 的验收是连续 14 天、完整率 ≥ 90%，天数是跑出来的，不是写出来的。
 > 其余能力按 [ROADMAP](docs/ROADMAP.md) 推进。
+>
+> PKBrain 是工作名（决策点 D1），正式命名与商标检查在公开前完成。
 
 ## 与 PKBS 的关系
 
@@ -152,4 +154,6 @@ uv run pkbrain --help
 
 ## 许可
 
-Apache-2.0（[ADR-0003](docs/ADR/0003-开源协议.md)，待社区确认）。
+Apache-2.0，全文见 [LICENSE](LICENSE)。版权 2026 echoyan。
+
+决策点 D1–D8 的拍板结果与公开前清单见 [docs/DECISIONS.md](docs/DECISIONS.md)。
