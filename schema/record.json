@@ -1,0 +1,149 @@
+{
+  "$id": "https://pkbrain.dev/schema/record.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "schema/record.json 由 pkbrain.models.Record 生成，请勿手改。",
+  "properties": {
+    "agent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Agent Id"
+    },
+    "channel": {
+      "default": "manual",
+      "title": "Channel",
+      "type": "string"
+    },
+    "confidence": {
+      "default": 0.4,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "date": {
+      "format": "date",
+      "title": "Date",
+      "type": "string"
+    },
+    "dims": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Dims",
+      "type": "array"
+    },
+    "entities": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Entities",
+      "type": "array"
+    },
+    "free_text": {
+      "default": "",
+      "title": "Free Text",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "metrics": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Metrics",
+      "type": "object"
+    },
+    "model": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model"
+    },
+    "privacy": {
+      "default": "P1",
+      "title": "Privacy",
+      "type": "string"
+    },
+    "prompt_used": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Prompt Used"
+    },
+    "sections": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Sections",
+      "type": "object"
+    },
+    "source": {
+      "default": "manual",
+      "title": "Source",
+      "type": "string"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+    },
+    "tokens": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tokens"
+    },
+    "ts": {
+      "format": "date-time",
+      "title": "Ts",
+      "type": "string"
+    },
+    "type": {
+      "default": "R1",
+      "title": "Type",
+      "type": "string"
+    },
+    "version": {
+      "default": "0.1.0",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "ts",
+    "date"
+  ],
+  "title": "PKBrain Record（PKBS 最小子集）",
+  "type": "object"
+}

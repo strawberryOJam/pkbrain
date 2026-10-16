@@ -1,0 +1,9 @@
+name,dim,unit,type,min,max,pattern,description
+sleep_hours,D1,h,float,0,24,"睡(?:了|眠)?\s*(?P<value>\d+(?:\.\d+)?)\s*(?:个?小时|h|hrs?)",夜间睡眠时长
+sleep_quality,D1,1-5,int,1,5,"(?:睡眠)?质量\s*[:：]?\s*(?P<value>[1-5])",睡眠质量自评
+exercise_min,D1,min,int,0,600,"(?:运动|锻炼|跑步|跑|健身|慢跑)了?\s*(?P<value>\d+)\s*(?:分钟|min)",运动时长
+weight_kg,D1,kg,float,20,300,"体重\s*[:：]?\s*(?P<value>\d+(?:\.\d+)?)\s*(?:kg|公斤)",体重
+energy,D1,1-5,int,1,5,"精力\s*[:：]?\s*(?P<value>[1-5])",精力自评
+mood,D2,1-5,int,1,5,"心情\s*[:：]?\s*(?P<value>[1-5])",心情自评
+anxiety,D2,1-5,int,1,5,"焦虑\s*[:：]?\s*(?P<value>[1-5])",焦虑程度自评
+focus_hours,D3,h,float,0,24,"专注\s*(?P<value>\d+(?:\.\d+)?)\s*(?:个?小时|h)",专注工作时长

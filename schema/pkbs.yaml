@@ -1,0 +1,65 @@
+# PKBS 最小子集的机器可读定义。
+# 注意：这是 M0 的临时子集，不是 PKBS-1.0 官方定义。见 docs/ADR/0002-最小-PKBS-子集.md。
+version: 0.1.0-min
+standard: PKBS-1.0
+status: placeholder
+
+record_types:
+  R1:
+    name: 每日快照
+    scope: day
+    dims: [D1, D2, D3, D4]
+  R2:
+    name: 即时记录
+    scope: moment
+    dims: []
+
+dimensions:
+  D0:
+    name: 基线
+    kind: baseline
+  D1:
+    name: 身体
+    kind: dimension
+  D2:
+    name: 情绪
+    kind: dimension
+  D3:
+    name: 事业
+    kind: dimension
+  D4:
+    name: 关系
+    kind: dimension
+  X1:
+    name: 时间
+    kind: cross
+  X2:
+    name: 目标
+    kind: cross
+
+privacy:
+  P0:
+    name: 公开
+    rule: 可同步、可分享
+  P1:
+    name: 私密
+    rule: 仅本地明文，默认
+  P2:
+    name: 敏感
+    rule: 仅本地，v0.2 起静态加密
+default_privacy: P1
+
+channels: [manual, chat, audio, device, weather]
+
+# 这些标题下的正文直接进自由记录，不再套一层标题。
+free_headings: [自由记录, 其他, 备注]
+
+confidence:
+  base: 0.4
+  per_metric: 0.1
+  with_sections: 0.5
+  max: 0.95
+
+paths:
+  records: records
+  database: pkbrain.db
