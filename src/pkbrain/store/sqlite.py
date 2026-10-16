@@ -235,6 +235,24 @@ class Store:
         row = self.conn.execute("SELECT * FROM records WHERE id = ?", (record_id,)).fetchone()
         return _hit(row) if row else None
 
+    def latest_before(self, day: str) -> Hit | None:
+        """今天之前最近的一条记录。提问引擎靠它找昨日缺口。"""
+        row = self.conn.execute(
+            "SELECT * FROM records WHERE date < ? ORDER BY date DESC, ts DESC LIMIT 1", (day,)
+        ).fetchone()
+        return _hit(row) if row else None
+
+    def between(self, start: str, end: str, *, limit: int = 10) -> list[Hit]:
+        rows = self.conn.execute(
+            "SELECT * FROM records WHERE date BETWEEN ? AND ? ORDER BY date LIMIT ?",
+            (start, end, limit),
+        ).fetchall()
+        return [_hit(row) for row in rows]
+
+    def dates(self) -> list[str]:
+        rows = self.conn.execute("SELECT DISTINCT date FROM records ORDER BY date").fetchall()
+        return [row["date"] for row in rows]
+
     def metric_series(
         self, name: str | None = None, *, since: str | None = None, until: str | None = None
     ) -> list[sqlite3.Row]:

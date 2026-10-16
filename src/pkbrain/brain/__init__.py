@@ -1,8 +1,8 @@
-"""大脑：抽取、快照组装、检索问答。
+"""大脑：抽取、快照组装、提问、检索。
 
-M0 只有规则抽取与快照组装。提问引擎（每晚按记忆选问题）是 M1 的事。
+`brain/scheduler` 依赖 APScheduler，只在 `pkbrain serve` 时按需导入，所以没放在这里。
 """
 
-from . import extractor, pipeline
+from . import extractor, llm, pipeline, questions, report, session
 
-__all__ = ["extractor", "pipeline"]
+__all__ = ["extractor", "llm", "pipeline", "questions", "report", "session"]

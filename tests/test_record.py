@@ -84,6 +84,6 @@ def test_model_rejects_bad_dimension():
 
 
 def test_schema_is_loaded_from_the_repo(schema):
-    assert schema.version == "0.1.0-min"
+    assert schema.version == "0.2.0-min"
     assert load_schema() is schema  # 带缓存，同一个对象
     assert (schema.source_dir / "metrics.csv").is_file()

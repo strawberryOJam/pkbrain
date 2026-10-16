@@ -1,6 +1,6 @@
 # PKBS 最小子集的机器可读定义。
 # 注意：这是 M0 的临时子集，不是 PKBS-1.0 官方定义。见 docs/ADR/0002-最小-PKBS-子集.md。
-version: 0.1.0-min
+version: 0.2.0-min
 standard: PKBS-1.0
 status: placeholder
 
@@ -60,6 +60,34 @@ confidence:
   with_sections: 0.5
   max: 0.95
 
+# 提问引擎用的话术。改写这里就改了每晚被问什么，不用动代码。
+questions:
+  # 每个维度的探问句。昨日缺口（优先级 1）用它补问。
+  probes:
+    D1: 昨天身体怎么样？睡眠、运动、体重随便说。
+    D2: 昨天心情如何？有什么一直放不下的事？
+    D3: 昨天工作推进到哪一步了？专注了多久？
+    D4: 昨天和谁有过接触？有什么值得记的？
+  # 悬而未决项的触发词。句子里命中就追问进展。
+  # 只留指向未来、能兑现的词。「要」「想」「等」太常见，会把情绪描述也当成待办。
+  open_markers: [明天, 后天, 下周, 下个月, 下次, 接下来, 打算, 计划, 准备, 还没, 待办, 答应]
+  # 精神层反思轮换池（优先级 3，每周至少一次）。答案进自由记录。
+  reflections:
+    - 这一周有什么让你觉得值得的事？
+    - 最近有没有什么事在消耗你？是什么？
+    - 你现在的状态，和三年前比，最大的变化是什么？
+    - 如果这周只能留下一句话，你会留哪句？
+    - 有什么事你一直想做但一直没开始？卡在哪？
+  # 回顾旧记忆（优先级 4）的回看天数。
+  revisit_days: [30, 90, 365]
+  session:
+    max_questions: 3
+    min_answers: 1
+
 paths:
   records: records
   database: pkbrain.db
+  sessions: sessions
+  goals: goals.md
+  state: state.json
+  config: config.toml

@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
+.DS_Store
 
 # 运行时数据不进仓库
 *.db

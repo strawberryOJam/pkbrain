@@ -1,4 +1,4 @@
-# PKBS 最小子集（v0.1.0-min）
+# PKBS 最小子集（v0.2.0-min）
 
 > **这不是 PKBS-1.0 的官方定义。**
 > 它是为了让 M0 能开工而定下的临时子集，字段名与编码沿用 PKBS 的命名习惯。PKBS-1.0 正文到手后，按 [ADR-0002](ADR/0002-最小-PKBS-子集.md) 整体替换 `schema/`。
@@ -60,7 +60,7 @@ dims: [D1, D2]
 source: examples/today.md
 confidence: 0.7
 privacy: P1
-version: 0.1.0-min
+version: 0.2.0-min
 entities: []
 tags: [晚间]
 channel: manual
@@ -112,3 +112,31 @@ confidence = min(0.5 + 0.1 × 抽到的指标数, 0.95)
 ```
 
 正文分节但一个指标都没抽到时为 0.5，全靠自由记录时为 0.4。M2 接 LLM 抽取后改为模型自评。
+
+## 8. 提问话术（v0.2.0-min 新增）
+
+提问引擎的话术也放在 `pkbs.yaml` 的 `questions` 段，改数据就改了每晚被问什么：
+
+| 键 | 用途 |
+|---|---|
+| `probes` | 每个维度的探问句，昨日缺口（优先级 1）用它补问 |
+| `open_markers` | 悬而未决项的触发词，句子里命中就追问进展 |
+| `reflections` | 精神层反思轮换池（优先级 3），答案进自由记录 |
+| `revisit_days` | 回顾旧记忆（优先级 4）的回看天数 |
+| `session.max_questions` | 一场会话最多几条 |
+| `session.min_answers` | 少于几条就拒绝落记录 |
+
+优先级与插队规则见 [ADR-0005](ADR/0005-提问引擎的优先级.md)。
+
+## 9. 数据目录布局
+
+| 文件 | 内容 |
+|---|---|
+| `records/年/月/日期-类型-短id.md` | 记录正本 |
+| `sessions/日期-短id.md` | 会话转写（问题、回答、依据） |
+| `sessions/日期-pending.json` | `serve` 备好但还没答的问题 |
+| `goals.md` | 目标清单（贯穿维 X2） |
+| `state.json` | 提问引擎的轮换状态 |
+| `config.toml` | 模型与定时设置 |
+| `pkbrain.db` | 索引，可由正本重建（重建命令待补） |
+

@@ -53,6 +53,7 @@ class PkbsSubset:
     free_headings: list[str]
     default_privacy: str
     confidence: dict[str, float]
+    questions: dict
     paths: dict[str, str]
     source_dir: Path
 
@@ -73,6 +74,23 @@ class PkbsSubset:
 
     def dim_codes(self) -> list[str]:
         return list(self.dimensions)
+
+    # ---- 提问引擎用的取数 ---------------------------------------------
+
+    def probe(self, dim: str) -> str | None:
+        return self.questions.get("probes", {}).get(dim)
+
+    def open_markers(self) -> list[str]:
+        return list(self.questions.get("open_markers", []))
+
+    def reflections(self) -> list[str]:
+        return list(self.questions.get("reflections", []))
+
+    def revisit_days(self) -> list[int]:
+        return [int(d) for d in self.questions.get("revisit_days", [])]
+
+    def session_limit(self, key: str, default: int) -> int:
+        return int(self.questions.get("session", {}).get(key, default))
 
 
 @lru_cache(maxsize=8)
@@ -163,6 +181,7 @@ def load_schema(path: Path | None = None) -> PkbsSubset:
         free_headings=list(data.get("free_headings", [])),
         default_privacy=data["default_privacy"],
         confidence={k: float(v) for k, v in data["confidence"].items()},
+        questions=dict(data.get("questions", {})),
         paths=dict(data["paths"]),
         source_dir=directory,
     )

@@ -13,6 +13,7 @@ from pathlib import Path
 from .. import store
 from ..models import Record
 from ..schema import PkbsSubset
+from ..store.sqlite import Store
 from .extractor import Extraction, Extractor, RulesExtractor
 
 
@@ -70,13 +71,20 @@ def write_snapshot(
     *,
     schema: PkbsSubset,
     data_dir: Path,
-    store_path: Path | None = None,
+    database: Store | None = None,
 ) -> Path:
-    """Markdown 与 SQLite 双写。返回 Markdown 路径。"""
+    """Markdown 与 SQLite 双写。返回 Markdown 路径。
+
+    调用方已经开着数据库连接时传 `database`，免得同一轮开两个连接。
+    """
     path = store.markdown.record_path(data_dir, record)
     store.markdown.write(path, store.markdown.render(record, schema))
 
-    db = store_path or store.sqlite.db_path(data_dir, schema)
-    with store.sqlite.Store(db, schema) as database:
+    if database is not None:
         database.put(record, path=path)
+        return path
+
+    db = store.sqlite.db_path(data_dir, schema)
+    with store.sqlite.Store(db, schema) as opened:
+        opened.put(record, path=path)
     return path

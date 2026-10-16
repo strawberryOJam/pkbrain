@@ -20,14 +20,21 @@ uv run pkbrain snapshot --from-file examples/today.md
 uv run pkbrain search 睡眠
 ```
 
-## M1 — 定时对话（目标：1–2 个月）
+## M1 — 定时对话（实现完成，验收进行中）
 
-- `brain/scheduler.py`：APScheduler 驱动，每晚固定时间触发。
-- `brain/reflector.py`：提问引擎，按优先级选问题——昨日缺口 → 目标进度 → 精神层轮换 → 旧记忆回顾。
-- `collectors/chat.py`：对话写回，走同一条流水线。
-- LLM 可插拔：本地 Ollama 与云端 API 同一接口。
+| 项 | 状态 |
+|---|---|
+| `brain/questions.py`：四级优先级的提问引擎 + 轮换状态 | ✅ |
+| `brain/session.py`：问答组装走同一条流水线，转写留档 | ✅ |
+| `brain/llm.py`：`template`（默认离线）与 `openai`（Ollama / 云端） | ✅ |
+| `brain/scheduler.py`：APScheduler 每晚备好问题 + macOS 通知 | ✅ |
+| `collectors/chat.py`：对话通道 | ✅ |
+| `brain/report.py` + `pkbrain stats`：完整率与连续天数 | ✅ |
+| `pkbrain talk` / `plan` / `serve` / `goals` / `config` | ✅ |
 
 **验收标准：** 连续 14 天对话，快照完整率 ≥ 90%，中间没有一天需要手工补。
+
+功能齐了，天数还得跑。用 `pkbrain stats` 看：完整率与连续天数就是这两条判据。
 
 ## M2 — 采集与对外（目标：3 个月）
 

@@ -1,10 +1,11 @@
 [project]
 name = "pkbrain"
-version = "0.1.0"
+version = "0.2.0"
 description = "PKBrain —— 开源、本地优先、Build in Public 的个人知识库大脑"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "apscheduler>=3.10,<4",
     "pydantic>=2.9",
     "PyYAML>=6.0",
     "typer>=0.12",
