@@ -26,8 +26,26 @@ temperature = 0.3
 [schedule]
 # pkbrain serve 每晚开一场会话的时间，24 小时制。
 time = "22:00"
-# 到点发一条系统通知（macOS）。
+# 到点发不发通知。
 notify = true
+
+[notify]
+# 通知往哪送。auto：macOS 用 osascript，Linux 用 notify-send，都没有就打到终端。
+# 可选 auto / macos / linux / command / stdout / none。
+backend = "auto"
+
+# backend = "command" 时跑这句。{title} 与 {message} 会被替换，
+# 同时也以环境变量 PKBRAIN_TITLE / PKBRAIN_MESSAGE 传入。例如：
+#   command = "curl -s -X POST https://ntfy.sh/我的主题 -d '{message}'"
+command = ""
+
+# 单次投递的超时秒数。hook 卡住不会拖住 serve。
+timeout = 10.0
+
+[mcp]
+# 允许 MCP 客户端（Claude Desktop、Cursor、任意 agent）写入记录。
+# 关掉就是只读大脑：检索、统计、看目标都能用，写不进来。
+allow_write = true
 """
 
 
@@ -56,9 +74,25 @@ class ScheduleConfig:
 
 
 @dataclass(frozen=True)
+class NotifyConfig:
+    """通知的去处。与 `notify.Settings` 同形，可直接交给 `notify.send`。"""
+
+    backend: str = "auto"
+    command: str = ""
+    timeout: float = 10.0
+
+
+@dataclass(frozen=True)
+class McpConfig:
+    allow_write: bool = True
+
+
+@dataclass(frozen=True)
 class Config:
     llm: LLMConfig = field(default_factory=LLMConfig)
     schedule: ScheduleConfig = field(default_factory=ScheduleConfig)
+    notify: NotifyConfig = field(default_factory=NotifyConfig)
+    mcp: McpConfig = field(default_factory=McpConfig)
     path: Path | None = None
 
     def with_llm(self, **changes: object) -> Config:
@@ -84,7 +118,9 @@ def load_config(data_dir: Path, schema) -> Config:
     raw = tomllib.loads(path.read_text(encoding="utf-8"))
     llm = LLMConfig(**{**asdict(LLMConfig()), **raw.get("llm", {})})
     schedule = ScheduleConfig(**{**asdict(ScheduleConfig()), **raw.get("schedule", {})})
-    return Config(llm=llm, schedule=schedule, path=path)
+    notify = NotifyConfig(**{**asdict(NotifyConfig()), **raw.get("notify", {})})
+    mcp = McpConfig(**{**asdict(McpConfig()), **raw.get("mcp", {})})
+    return Config(llm=llm, schedule=schedule, notify=notify, mcp=mcp, path=path)
 
 
 def write_default_config(data_dir: Path, schema, *, force: bool = False) -> Path:

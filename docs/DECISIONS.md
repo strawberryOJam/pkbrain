@@ -24,7 +24,7 @@
 |---|---|
 | README 首屏、VISION、ROADMAP | ✅ |
 | `LICENSE` | ✅ Apache-2.0 |
-| `docs/ADR/`：关键决策留痕 | ✅ 5 份 |
+| `docs/ADR/`：关键决策留痕 | ✅ 6 份 |
 | `CONTRIBUTING.md` | ❌ |
 | Issue 模板（Bug / Feature / Discussion） | ❌ |
 | CI（跑测试） | ❌ |
@@ -40,4 +40,6 @@
 | 记录怎么存 | Markdown 正本 + SQLite 索引 | ADR-0001 |
 | 记录什么 | 先用最小 PKBS 子集，等 PKBS-1.0 替换 | ADR-0002 |
 | 提问的优先级 | 优先级 1 最多两问，反思到期插在目标前 | ADR-0005 |
-| MCP 归期 | 从 v0.1 推到 M2 | ROADMAP |
+| MCP 怎么接 | 官方 python-sdk，stdio 与 streamable-http 都开，八个工具、写入可关 | ADR-0006 |
+| 通知往哪送 | 配置项，不写死平台：auto / macos / linux / command / stdout / none | ADR-0006 |
+| MCP 归期 | 从 v0.1 推到 M2，M2 首件落地 | ROADMAP |

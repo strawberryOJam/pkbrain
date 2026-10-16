@@ -54,3 +54,25 @@ def coverage(dates: list[str], *, today: Date | None = None) -> Coverage:
     return Coverage(
         first=first, last=last, days_recorded=len(days), days_span=span, streak=streak
     )
+
+
+def describe(info: dict, share: Coverage, *, target: float = 0.9) -> str:
+    """把 `Store.stats()` 与 `coverage()` 的产出写成几行给人（或 agent）看的话。
+
+    CLI 的 `pkbrain stats` 与 MCP 的 `brain_stats` 都用它，免得两处口径走岔。
+    """
+    if not info.get("records"):
+        return "还没有记录。先跑 pkbrain talk，或 pkbrain snapshot --from-file <文件>。"
+
+    lines = [
+        f"记录 {info['records']} 条，覆盖 {info['days']} 天（{info['first']} → {info['last']}）",
+        (
+            f"完整率 {share.rate:.1%}（{share.days_recorded}/{share.days_span} 天），"
+            f"连续 {share.streak} 天，目标 {target:.0%} {'达标' if share.meets(target) else '未达标'}"
+        ),
+    ]
+    channels = info.get("channels") or {}
+    lines.append("通道 " + ("，".join(f"{k} {v}" for k, v in channels.items()) or "无"))
+    metrics = info.get("metrics") or {}
+    lines.append("指标 " + ("，".join(f"{k} {v}" for k, v in metrics.items()) or "无"))
+    return "\n".join(lines)

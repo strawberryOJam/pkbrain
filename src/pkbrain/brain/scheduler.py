@@ -7,17 +7,15 @@
 from __future__ import annotations
 
 import json
-import subprocess
-import sys
 from dataclasses import asdict
 from datetime import date as Date
 from datetime import datetime
 from pathlib import Path
-from typing import Callable
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from ..config import Config
+from ..config import Config, NotifyConfig
+from ..notify import send as _send
 from ..schema import PkbsSubset
 from ..store.sqlite import Store, db_path
 from .questions import Question, QuestionEngine
@@ -48,23 +46,18 @@ def load_pending(path: Path) -> list[Question] | None:
     return [Question(**item) for item in data]
 
 
-def notify(message: str, *, title: str = TITLE, platform: str | None = None,
-           run: Callable = subprocess.run) -> bool:
-    """发一条系统通知。发不出去不算失败。"""
-    platform = platform or sys.platform
-    if platform != "darwin":
-        print(f"[{title}] {message}")
-        return False
-    script = f'display notification "{_escape(message)}" with title "{_escape(title)}"'
-    try:
-        run(["osascript", "-e", script], check=False, capture_output=True, timeout=10)
-    except (OSError, subprocess.SubprocessError):
-        return False
-    return True
+def notify(
+    message: str,
+    *,
+    title: str = TITLE,
+    settings: NotifyConfig | None = None,
+    **kwargs,
+) -> bool:
+    """发一条通知：系统通知或你在 config.toml 里配的 hook。发不出去不算失败。
 
-
-def _escape(text: str) -> str:
-    return text.replace("\\", "\\\\").replace('"', '\\"')
+    真正的投递在 `pkbrain.notify`，这里只留一个 scheduler 侧的入口，方便替换与测试。
+    """
+    return _send(message, title=title, settings=settings, **kwargs).delivered
 
 
 def open_nightly(
@@ -87,7 +80,10 @@ def open_nightly(
         head = questions[0].text
         extra = f"，还有 {len(questions) - 1} 个" if len(questions) > 1 else ""
         if config.schedule.notify:
-            notify(f"今晚的问题：{head}{extra}　跑 pkbrain talk 回答。")
+            notify(
+                f"今晚的问题：{head}{extra}　跑 pkbrain talk 回答。",
+                settings=config.notify,
+            )
     return questions
 
 

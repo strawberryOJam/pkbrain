@@ -2,7 +2,7 @@ from datetime import date
 
 from pkbrain.brain import scheduler
 from pkbrain.brain.questions import Question, load_state
-from pkbrain.config import Config, ScheduleConfig
+from pkbrain.config import Config, NotifyConfig, ScheduleConfig
 
 TODAY = date(2026, 10, 16)
 
@@ -58,34 +58,19 @@ def test_open_nightly_stays_quiet_when_notify_is_off(tmp_path, schema, monkeypat
     assert sent == []
 
 
-def test_notify_prints_on_other_platforms(capsys):
-    assert scheduler.notify("准备好了", platform="linux") is False
-    assert "准备好了" in capsys.readouterr().out
+def test_notify_shells_out_through_the_configured_hook(tmp_path, schema):
+    """通知的去处在 config.toml 里：这里配一条 hook，看提醒真的落到它手上。"""
+    log = tmp_path / "hook.log"
+    script = tmp_path / "hook.sh"
+    script.write_text(f'#!/bin/sh\nprintf "%s\\n" "$PKBRAIN_MESSAGE" >> {log}\n', encoding="utf-8")
 
+    config = Config(
+        schedule=ScheduleConfig(notify=True),
+        notify=NotifyConfig(backend="command", command=f"sh {script}"),
+    )
+    scheduler.open_nightly(config, schema, tmp_path, today=TODAY)
 
-def test_notify_shells_out_on_macos():
-    calls = []
-
-    def fake_run(args, **kwargs):
-        calls.append(args)
-        return None
-
-    assert scheduler.notify("准备好了", platform="darwin", run=fake_run) is True
-    assert calls[0][0] == "osascript"
-    assert 'display notification "准备好了"' in calls[0][2]
-
-
-def test_notify_escapes_quotes():
-    calls = []
-    scheduler.notify('他说"好"', platform="darwin", run=lambda args, **kw: calls.append(args))
-    assert '\\"好\\"' in calls[0][2]
-
-
-def test_notify_swallows_failures():
-    def boom(*args, **kwargs):
-        raise OSError("没有 osascript")
-
-    assert scheduler.notify("准备好了", platform="darwin", run=boom) is False
+    assert "pkbrain talk" in log.read_text(encoding="utf-8")
 
 
 def test_scheduler_uses_the_configured_time(tmp_path, schema):

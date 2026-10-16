@@ -27,7 +27,7 @@ uv run pkbrain search 睡眠
 | `brain/questions.py`：四级优先级的提问引擎 + 轮换状态 | ✅ |
 | `brain/session.py`：问答组装走同一条流水线，转写留档 | ✅ |
 | `brain/llm.py`：`template`（默认离线）与 `openai`（Ollama / 云端） | ✅ |
-| `brain/scheduler.py`：APScheduler 每晚备好问题 + macOS 通知 | ✅ |
+| `brain/scheduler.py`：APScheduler 每晚备好问题 + 提醒（去处见 M2） | ✅ |
 | `collectors/chat.py`：对话通道 | ✅ |
 | `brain/report.py` + `pkbrain stats`：完整率与连续天数 | ✅ |
 | `pkbrain talk` / `plan` / `serve` / `goals` / `config` | ✅ |
@@ -38,12 +38,21 @@ uv run pkbrain search 睡眠
 
 ## M2 — 采集与对外（目标：3 个月）
 
-- 录音：自研录音 + faster-whisper，可选接入 screenpipe。
-- 向量检索：pgvector 或 Qdrant，与自研记忆层二选一（见 ADR 待写）。
-- 设备与天气：健康设备导入、Open-Meteo。
-- `server/`：MCP 只读工具 + REST。
+| 项 | 状态 |
+|---|---|
+| `server/mcp.py`：八个工具，stdio 与 streamable-http 两种传输 | ✅ |
+| `notify.py`：通知的去处进配置，跨平台 + 可配 hook | ✅ |
+| `pkbrain mcp` / `pkbrain notify` / `pkbrain mcp --print-config` | ✅ |
+| 录音：自研录音 + faster-whisper，可选接入 screenpipe | ❌ |
+| 向量检索：pgvector 或 Qdrant，与自研记忆层二选一（见 ADR 待写） | ❌ |
+| 设备与天气：健康设备导入、Open-Meteo | ❌ |
+| REST：`/records`、`/search`、`/metrics` | ❌ 等面板需要时再做 |
 
 **验收标准：** 向外部 AI 问「我上周的运动和情绪有什么关系」，回答能指回具体记录。
+
+MCP 那一半现在就能验：`pkbrain mcp --print-config` 把配置贴进客户端，问一句
+「我上周的睡眠和情绪有什么关系」，看它能不能报出日期与记录 id。
+另一半要等向量检索——纯全文索引答不了「关系」这类跨维度的问法。
 
 ## M3 — 回顾与自托管（目标：6 个月）
 

@@ -6,6 +6,7 @@
 
 > 现状：**M1 开发中**。每晚的会话已经能用——`pkbrain talk` 按记忆挑问题，你回答，落成当天的快照；
 > `pkbrain stats` 报完整率。M1 的验收是连续 14 天、完整率 ≥ 90%，天数是跑出来的，不是写出来的。
+> M2 的第一件也落了地：`pkbrain mcp` 把大脑接给任意 AI。
 > 其余能力按 [ROADMAP](docs/ROADMAP.md) 推进。
 >
 > PKBrain 是工作名（决策点 D1），正式命名与商标检查在公开前完成。
@@ -32,7 +33,7 @@ collectors → brain → store → server
 | `brain/` | 提问引擎、抽取、快照组装、定时 | ✅（语义抽取 M2） |
 | `store/` | Markdown 与 SQLite 双写、检索 | ✅ |
 | `memory/` | 只增记忆、实体链接 | 空壳，M2 |
-| `server/` | MCP 与 REST 对外 | 空壳，M2 |
+| `server/` | MCP 对外 | ✅ 读写八工具（stdio / http），REST 待做 |
 | `ui/` | 回顾面板 | 未开始，M3 |
 
 ## 快速开始
@@ -88,6 +89,74 @@ uv run pkbrain serve
 
 改问法不用改代码，改 `schema/pkbs.yaml` 的 `questions` 段即可。
 
+## 通知发到哪里
+
+`serve` 备好问题后会提醒你。去处写在 `config.toml` 里，不绑平台：
+
+```toml
+[notify]
+# auto：macOS 用 osascript，有 notify-send 就用它，两样都没有就打到终端。
+backend = "auto"
+
+# 想送到别处就换成一条命令，{title} 与 {message} 会被替换：
+# backend = "command"
+# command = "curl -s -X POST https://ntfy.sh/我的主题 -d '{message}'"
+```
+
+```sh
+uv run pkbrain notify "测试一条"   # 自查：告诉你这次走了哪条路
+uv run pkbrain config show        # 看生效的 backend
+```
+
+命令同时拿到环境变量 `PKBRAIN_TITLE` 与 `PKBRAIN_MESSAGE`，命令里本来就含花括号时用它们。
+发不出去不会中断 `serve`。
+
+## 接上任意 AI（MCP）
+
+`pkbrain mcp` 在 stdin/stdout 上跑一个 MCP server。Claude Desktop、Cursor、Codex，或自己写的
+agent，接上就能查你的历史：
+
+```sh
+uv run pkbrain mcp --print-config
+```
+
+把打印出来的 JSON 贴进客户端配置。Claude Desktop 是
+`~/Library/Application Support/Claude/claude_desktop_config.json`：
+
+```json
+{
+  "mcpServers": {
+    "pkbrain": {
+      "command": "pkbrain",
+      "args": ["mcp", "--data-dir", "/Users/you/.pkbrain"]
+    }
+  }
+}
+```
+
+用 uv、不想全局装的话，`command` 换成 `uv`、`args` 改成 `["run", "pkbrain", "mcp", ...]`。
+
+| 工具 | 做什么 |
+|---|---|
+| `brain_schema` | 这份知识库的词汇表：记录类型、维度、指标、隐私分级。写之前先看它 |
+| `brain_stats` | 条数、覆盖天数、完整率、连续天数 |
+| `search_records` | 全文检索，可按维度 / 日期 / 隐私过滤 |
+| `get_record` | 按日期或记录 id 取 Markdown 原文 |
+| `metric_series` | 某个指标随时间的取值 |
+| `list_goals` | 目标清单 |
+| `todays_questions` | 今天会问什么。只读，不动轮换状态 |
+| `add_record` | 把一段文本落成记录 |
+
+接上以后就能问「我上周的睡眠和情绪有什么关系」「我上次说要联系客户，后来怎么样了」，
+回答里会带日期与记录 id，能自己核对。
+
+- 只想要只读大脑：`config.toml` 里写 `[mcp] allow_write = false`。
+- 让别的机器或别的进程接：`uv run pkbrain mcp --transport http --port 8765`，
+  端点是 `http://127.0.0.1:8765/mcp`。默认只监听本地，没有认证，别对着公网开。
+
+多说一句隐私：记录带 P0/P1/P2 三级，MCP 会原样交给客户端。P2 是你特意标成敏感的那些，
+往外发之前先问自己一句。见 [ADR-0006](docs/ADR/0006-mcp-接入与通知的去处.md)。
+
 ## 用哪个模型
 
 默认 `template`：不联网、不要密钥，问句用 schema 里的话术原文。开箱即用。
@@ -136,6 +205,8 @@ pkbrain goals add "联系客户确认合同" --due 2026-10-20 --dim D3
 pkbrain goals show
 pkbrain config show
 pkbrain stats --target 0.9
+pkbrain mcp --print-config              # 贴进 MCP 客户端的配置
+pkbrain notify "测试一条"                # 看通知走哪条路
 pkbrain schema export                    # 由 pydantic 模型重新生成 schema/record.json
 ```
 

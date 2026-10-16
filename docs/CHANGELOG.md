@@ -6,6 +6,15 @@
 
 ### 新增
 
+- `pkbrain mcp`：把大脑接到 MCP 上，客户端任意（Claude Desktop、Cursor、Codex、自己写的 agent）。
+  stdio 与 streamable-http 两种传输，八个工具：`brain_schema`、`brain_stats`、`search_records`、
+  `get_record`、`metric_series`、`list_goals`、`todays_questions`、`add_record`。
+  只有最后一个是写入，`[mcp] allow_write = false` 可关。见 [ADR-0006](ADR/0006-mcp-接入与通知的去处.md)。
+- `pkbrain mcp --print-config`：打印一份可直接贴进客户端的 JSON 配置。
+- 通知的去处变成配置：`[notify] backend = auto | macos | linux | command | stdout | none`，
+  `command` 是任意 shell 命令（hook），`{title}` / `{message}` 与
+  `PKBRAIN_TITLE` / `PKBRAIN_MESSAGE` 都能用。不再只有 macOS。
+- `pkbrain notify "文本"`：按配置发一条通知，自查 hook 通不通。
 - `LICENSE`：Apache-2.0 全文。决策点 D2 拍板。
 - `docs/DECISIONS.md`：D1–D8 的拍板结果、按建议先走的项，以及公开前清单。
 - `pkbrain demo seed`：生成连续 N 天的演示快照，每天覆盖全部维度，指标落在 schema 区间内。
@@ -13,10 +22,14 @@
 
 ### 变更
 
+- `brain/scheduler.py` 的通知改为委托 `pkbrain.notify`：去处由配置决定，发不出去不再算失败。
+- `pkbrain stats` 与 MCP 的 `brain_stats` 共用一个渲染函数（`brain.report.describe`），口径只有一处。
 - `pyproject.toml` 标注 SPDX `license = "Apache-2.0"` 并把 `LICENSE` 打进包
   （wheel 里是 `License-Expression: Apache-2.0` 与 `License-File: LICENSE`）。
 - ADR-0003 从「提议」改为「已采纳」。
 - README 的许可一节改为指向 `LICENSE`。
+- 测试从 143 项加到 190 项，其中一项真把 `pkbrain mcp` 拉起来，用官方 MCP 客户端的 stdio
+  传输走一遍握手与工具调用。
 
 ## [0.2.0] - 2026-10-16
 

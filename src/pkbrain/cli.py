@@ -17,10 +17,10 @@ from typing import Callable
 
 import typer
 
-from . import __version__, demo as demo_module, goals as goals_module, store
+from . import __version__, demo as demo_module, goals as goals_module, notify as notify_module, store
 from .brain import pipeline, questions as questions_module, session
 from .brain.llm import build_llm
-from .brain.report import coverage
+from .brain.report import coverage, describe
 from .collectors import manual
 from .config import Config, load_config, write_default_config
 from .schema import PkbsSubset, load_schema
@@ -196,22 +196,7 @@ def stats(
         info = database.stats()
         share = coverage(database.dates(), today=Date.today())
 
-    if not info["records"]:
-        typer.echo("还没有记录。先跑 pkbrain talk，或 pkbrain snapshot --from-file <文件>。")
-        return
-
-    typer.echo(f"记录 {info['records']} 条，覆盖 {info['days']} 天（{info['first']} → {info['last']}）")
-    typer.echo(
-        f"完整率 {share.rate:.1%}（{share.days_recorded}/{share.days_span} 天），"
-        f"连续 {share.streak} 天，目标 {target:.0%} {'达标' if share.meets(target) else '未达标'}"
-    )
-    channels = "，".join(f"{k} {v}" for k, v in info["channels"].items())
-    typer.echo(f"通道 {channels}")
-    if info["metrics"]:
-        metrics = "，".join(f"{k} {v}" for k, v in info["metrics"].items())
-        typer.echo(f"指标 {metrics}")
-    else:
-        typer.echo("指标 无")
+    typer.echo(describe(info, share, target=target))
 
 
 # ---- 每晚的会话 ---------------------------------------------------------
@@ -330,6 +315,63 @@ def serve(
         typer.echo("停了。")
 
 
+# ---- 对外 ---------------------------------------------------------------
+
+
+@app.command()
+def mcp(
+    transport: str = typer.Option(
+        "stdio", "--transport", help="stdio（本地客户端）或 http（streamable-http，别的机器接）。"
+    ),
+    host: str = typer.Option("127.0.0.1", "--host", help="--transport http 时监听哪个地址。"),
+    port: int = typer.Option(8765, "--port", help="--transport http 时监听哪个端口。"),
+    print_config: bool = typer.Option(
+        False, "--print-config", help="打印一份可直接贴进客户端的 JSON 配置，然后退出。"
+    ),
+    data_dir: Path = DATA_DIR_OPTION,
+) -> None:
+    """把大脑接到 MCP 客户端上：Claude Desktop、Cursor、任意 agent。"""
+    directory, schema, config = _setup(data_dir)
+    from .server import mcp as mcp_module
+
+    if print_config:
+        typer.echo(mcp_module.client_config(directory))
+        return
+
+    if transport != "stdio":
+        typer.echo(f"监听 http://{host}:{port}/mcp，Ctrl-C 退出。")
+    else:
+        # stdio 下 stdout 归协议，一个字的闲话都不能说。
+        typer.echo("stdio 已就绪，等客户端说话。", err=True)
+
+    try:
+        mcp_module.run(directory, schema, config, transport=transport, host=host, port=port)
+    except ValueError as exc:
+        typer.echo(f"没起来：{exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    except (KeyboardInterrupt, SystemExit):
+        typer.echo("停了。")
+
+
+# ---- 通知 ---------------------------------------------------------------
+
+
+@app.command()
+def notify(
+    message: str = typer.Argument(..., help="要发的内容。"),
+    title: str = typer.Option("PKBrain", "--title", help="标题。"),
+    data_dir: Path = DATA_DIR_OPTION,
+) -> None:
+    """按配置发一条通知，看这条路通不通。"""
+    _, _, config = _setup(data_dir)
+    delivery = notify_module.send(message, title=title, settings=config.notify)
+    if delivery.delivered:
+        typer.echo(f"发出去了：{delivery.backend}（{delivery.detail}）")
+        return
+    typer.echo(f"没走系统通知：{delivery.backend} —— {delivery.detail}")
+    typer.echo("换个去处改 config.toml 的 [notify]：backend 与 command，见 README 的「通知」。")
+
+
 # ---- 目标 ---------------------------------------------------------------
 
 goals_app = typer.Typer(no_args_is_help=True, help="目标清单（贯穿维 X2），提问引擎按它追问进度。")
@@ -404,6 +446,10 @@ def config_show(data_dir: Path = DATA_DIR_OPTION) -> None:
     typer.echo(f"llm.密钥          环境变量 {config.llm.api_key_env}：{'已设置' if config.llm.api_key else '未设置'}")
     typer.echo(f"schedule.time     {config.schedule.time}")
     typer.echo(f"schedule.notify   {config.schedule.notify}")
+    typer.echo(f"notify.backend    {config.notify.backend}（生效：{notify_module.resolve(config.notify)}）")
+    typer.echo(f"notify.command    {config.notify.command or '（未设）'}")
+    typer.echo(f"notify.timeout    {config.notify.timeout}")
+    typer.echo(f"mcp.allow_write   {config.mcp.allow_write}")
 
 
 # ---- 演示数据 -----------------------------------------------------------

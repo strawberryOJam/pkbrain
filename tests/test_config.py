@@ -1,4 +1,12 @@
-from pkbrain.config import Config, LLMConfig, ScheduleConfig, load_config, write_default_config
+from pkbrain.config import (
+    Config,
+    LLMConfig,
+    McpConfig,
+    NotifyConfig,
+    ScheduleConfig,
+    load_config,
+    write_default_config,
+)
 
 
 def test_missing_config_file_uses_defaults(tmp_path, schema):
@@ -41,6 +49,36 @@ def test_generated_config_round_trips(tmp_path, schema):
     config = load_config(tmp_path, schema)
     assert config.llm == LLMConfig()
     assert config.schedule == ScheduleConfig()
+    assert config.notify == NotifyConfig()
+    assert config.mcp == McpConfig()
+
+
+def test_notify_section_loads(tmp_path, schema):
+    (tmp_path / schema.paths["config"]).write_text(
+        '[notify]\nbackend = "command"\ncommand = "curl -d \'{message}\'"\ntimeout = 3\n',
+        encoding="utf-8",
+    )
+    config = load_config(tmp_path, schema)
+    assert config.notify.backend == "command"
+    assert config.notify.command == "curl -d '{message}'"
+    assert config.notify.timeout == 3
+
+
+def test_mcp_section_loads(tmp_path, schema):
+    (tmp_path / schema.paths["config"]).write_text("[mcp]\nallow_write = false\n", encoding="utf-8")
+    config = load_config(tmp_path, schema)
+    assert config.mcp.allow_write is False
+    assert config.notify == NotifyConfig()  # 没写的段回落到默认
+
+
+def test_a_config_without_the_new_sections_still_loads(tmp_path, schema):
+    """0.2.0 之前写的 config.toml 没有 [notify] 与 [mcp]，不该因此报错。"""
+    (tmp_path / schema.paths["config"]).write_text(
+        '[llm]\nprovider = "openai"\n', encoding="utf-8"
+    )
+    config = load_config(tmp_path, schema)
+    assert config.notify == NotifyConfig()
+    assert config.mcp.allow_write is True
 
 
 def test_hour_minute_parsing():

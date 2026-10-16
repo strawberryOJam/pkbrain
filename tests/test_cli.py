@@ -219,3 +219,38 @@ def test_config_init_and_show(tmp_path):
     result = runner.invoke(app, ["config", "show", "--data-dir", str(tmp_path)])
     assert "template" in result.output
     assert "22:00" in result.output
+    assert "notify.backend    auto" in result.output
+    assert "mcp.allow_write   True" in result.output
+
+
+def test_mcp_print_config_points_at_the_data_dir(tmp_path):
+    result = runner.invoke(app, ["mcp", "--print-config", "--data-dir", str(tmp_path)])
+    assert result.exit_code == 0
+    entry = json.loads(result.output)["mcpServers"]["pkbrain"]
+    assert entry["command"] == "pkbrain"
+    assert entry["args"] == ["mcp", "--data-dir", str(tmp_path)]
+
+
+def test_mcp_rejects_an_unknown_transport(tmp_path):
+    result = runner.invoke(app, ["mcp", "--transport", "carrier-pigeon", "--data-dir", str(tmp_path)])
+    assert result.exit_code == 1
+    assert "没起来" in result.output
+
+
+def test_notify_reports_where_it_went(tmp_path, schema):
+    (tmp_path / schema.paths["config"]).write_text(
+        '[notify]\nbackend = "command"\ncommand = "true"\n', encoding="utf-8"
+    )
+    result = runner.invoke(app, ["notify", "测试一条", "--data-dir", str(tmp_path)])
+    assert result.exit_code == 0
+    assert "发出去了：command" in result.output
+
+
+def test_notify_says_when_it_did_not_reach_the_system(tmp_path, schema):
+    (tmp_path / schema.paths["config"]).write_text(
+        '[notify]\nbackend = "none"\n', encoding="utf-8"
+    )
+    result = runner.invoke(app, ["notify", "测试一条", "--data-dir", str(tmp_path)])
+    assert result.exit_code == 0
+    assert "没走系统通知" in result.output
+    assert "config.toml" in result.output

@@ -1,12 +1,15 @@
-"""对外接口：MCP 与 REST。
+"""对外接口：MCP。
 
-M0 是空壳。M2 落地，届时：
+`server.mcp` 把大脑挂到 MCP 上，客户端是谁都行：Claude Desktop、Cursor、Codex、自己写的 agent。
 
-- REST：`/records`、`/search`、`/metrics`，只读先行；
-- MCP：用 modelcontextprotocol 的 python-sdk 暴露 `search_records`、`get_snapshot` 两个只读工具，
-  让 Claude、ChatGPT、豆包接得上。
+```sh
+pkbrain mcp                     # stdio，本地客户端用这个
+pkbrain mcp --transport http    # streamable-http，别的机器或别的进程接
+```
 
-M0 的 In/Out 清单把 MCP 推到 M2，先把手动闭环跑通。
+M0 是空壳，M1 之前只有本地 CLI。M2 落地 MCP 读写；REST 还没做。
+
+这里不 `import mcp`：MCP 的 SDK 依赖不轻，只有真跑 `pkbrain mcp` 时才加载。
 """
 
 __all__: list[str] = []

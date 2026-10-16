@@ -8,6 +8,7 @@ license = "Apache-2.0"
 license-files = ["LICENSE"]
 dependencies = [
     "apscheduler>=3.10,<4",
+    "mcp>=2.3,<3",
     "pydantic>=2.9",
     "PyYAML>=6.0",
     "typer>=0.12",
