@@ -17,7 +17,7 @@ from typing import Callable
 
 import typer
 
-from . import __version__, goals as goals_module, store
+from . import __version__, demo as demo_module, goals as goals_module, store
 from .brain import pipeline, questions as questions_module, session
 from .brain.llm import build_llm
 from .brain.report import coverage
@@ -404,6 +404,39 @@ def config_show(data_dir: Path = DATA_DIR_OPTION) -> None:
     typer.echo(f"llm.密钥          环境变量 {config.llm.api_key_env}：{'已设置' if config.llm.api_key else '未设置'}")
     typer.echo(f"schedule.time     {config.schedule.time}")
     typer.echo(f"schedule.notify   {config.schedule.notify}")
+
+
+# ---- 演示数据 -----------------------------------------------------------
+
+demo_app = typer.Typer(no_args_is_help=True, help="演示数据：没历史时也想看到有数据的样子。")
+app.add_typer(demo_app, name="demo")
+
+
+@demo_app.command("seed")
+def demo_seed(
+    days: int = typer.Option(demo_module.DEFAULT_DAYS, "--days", help="生成几天。"),
+    end: str = typer.Option(None, "--end", help="最后一天 YYYY-MM-DD，默认今天。"),
+    seed_value: int = typer.Option(
+        demo_module.DEFAULT_SEED, "--seed", help="随机种子，同一种子出同一批数据。"
+    ),
+    force: bool = typer.Option(False, "--force", help="目标目录已有记录时也照写。"),
+    data_dir: Path = DATA_DIR_OPTION,
+) -> None:
+    """生成连续几天的演示快照，每天覆盖全部维度。记录会标上「演示数据」。"""
+    directory, schema, _ = _setup(data_dir)
+    try:
+        report = demo_module.seed(
+            schema,
+            directory,
+            days=days,
+            end=Date.fromisoformat(end) if end else None,
+            seed_value=seed_value,
+            force=force,
+        )
+    except (FileExistsError, ValueError) as exc:
+        typer.echo(f"没写成：{exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(demo_module.describe(report, schema))
 
 
 # ---- schema -------------------------------------------------------------

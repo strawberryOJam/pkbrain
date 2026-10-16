@@ -8,6 +8,8 @@
 
 - `LICENSE`：Apache-2.0 全文。决策点 D2 拍板。
 - `docs/DECISIONS.md`：D1–D8 的拍板结果、按建议先走的项，以及公开前清单。
+- `pkbrain demo seed`：生成连续 N 天的演示快照，每天覆盖全部维度，指标落在 schema 区间内。
+  固定随机种子；记录带 `tags: [演示数据]` 与 `source: seed_demo`；目标目录已有记录时默认拒绝写入。
 
 ### 变更
 

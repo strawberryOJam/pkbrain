@@ -146,6 +146,19 @@ uv run pytest
 uv run pkbrain --help
 ```
 
+### 想看有历史数据的样子
+
+```sh
+uv run pkbrain demo seed --data-dir /tmp/pkbrain-demo --days 40
+uv run pkbrain stats --data-dir /tmp/pkbrain-demo
+uv run pkbrain plan  --data-dir /tmp/pkbrain-demo
+```
+
+生成连续 N 天的快照，每天四个维度全填、指标落在 schema 区间内。固定随机种子，同一种子出同一批数据。
+
+演示记录带 `tags: [演示数据]` 与 `source: seed_demo`，和真人记录一眼分得开；目标目录里已有记录时默认拒绝写入。
+它让「没数据时看不到样子」这件事有解，但不代替 M1 的 14 天验收——那条说的是你自己连续用了 14 天。
+
 ## 不做什么
 
 - 不托管你的数据：没有服务端，没有账号，没有同步。
